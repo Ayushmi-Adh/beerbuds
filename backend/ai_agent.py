@@ -25,7 +25,7 @@ def extract_flavors(beer_text):
     
     # 3. Use your cutting-edge 3.5-flash model!
     response = client.models.generate_content(
-        model='gemini-3.5-flash',
+        model='gemini-flash-latest',
         contents=prompt,
     )
     return response.text.strip()
