@@ -14,7 +14,7 @@ function App() {
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    fetch('http://127.0.0.1:8000/api/beers')
+    fetch('https://beerbuds-backend.onrender.com/api/beers')
       .then(response => response.json())
       .then(data => setBeers(data.beers))
       .catch(error => console.error("Error fetching data:", error));
