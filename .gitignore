@@ -1,0 +1,10 @@
+# Ignore the Python virtual environment
+backend/venv/
+backend/__pycache__/
+
+# Ignore the Node modules (frontend dependencies)
+frontend/node_modules/
+
+# Ignore secret environment variables
+backend/.env
+.env

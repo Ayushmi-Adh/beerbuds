@@ -1,0 +1,30 @@
+name: CI Pipeline
+
+# Tell the robot when to run: whenever code is pushed to 'main' or a PR is opened
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-frontend:
+    runs-on: ubuntu-latest
+    
+    steps:
+      # Step 1: The robot downloads your code
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      # Step 2: The robot installs Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      # Step 3: The robot goes to your frontend folder and tries to build it
+      - name: Install dependencies and build
+        working-directory: ./frontend
+        run: |
+          npm install
+          npm run build
