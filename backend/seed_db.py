@@ -2,22 +2,27 @@ import os
 import psycopg2
 from dotenv import load_dotenv
 
-# Import our custom tools!
 from scraper import scrape_beer_info
 from ai_agent import extract_flavors
 
-# Open the vault to get our Neon Database URL
 load_dotenv()
 DATABASE_URL = os.getenv("DATABASE_URL")
 
+# A list of different beer styles on Wikipedia to build a real menu!
+BEER_URLS = [
+    {"name": "India Pale Ale", "url": "https://en.wikipedia.org/wiki/India_pale_ale"},
+    {"name": "Stout", "url": "https://en.wikipedia.org/wiki/Stout"},
+    {"name": "Pilsner", "url": "https://en.wikipedia.org/wiki/Pilsner"},
+    {"name": "Wheat Beer", "url": "https://en.wikipedia.org/wiki/Wheat_beer"},
+    {"name": "Porter", "url": "https://en.wikipedia.org/wiki/Porter_(beer)"}
+]
+
 def setup_database():
     print("🔌 Connecting to Neon Database...")
-    # Connect to the database using the URL
     conn = psycopg2.connect(DATABASE_URL)
     cur = conn.cursor()
     
     print("🏗️ Ensuring the 'beers' table exists...")
-    # SQL command to create the table if it doesn't already exist
     cur.execute("""
         CREATE TABLE IF NOT EXISTS beers (
             id SERIAL PRIMARY KEY,
@@ -26,37 +31,42 @@ def setup_database():
             flavors TEXT
         );
     """)
-    
-    # Save (commit) the changes to the database
     conn.commit()
     return conn, cur
 
 if __name__ == "__main__":
-    print("🚀 Starting the Full AI -> Database Pipeline!\n")
+    print("🚀 Starting the Bulk AI -> Database Pipeline!\n")
     
-    # Step 1: Scrape
-    url = "https://en.wikipedia.org/wiki/India_pale_ale"
-    raw_text = scrape_beer_info(url)
+    conn, cur = setup_database()
     
-    if "Failed" not in raw_text:
-        # Step 2: Analyze
-        flavors = extract_flavors(raw_text)
+    for item in BEER_URLS:
+        beer_name = item["name"]
+        url = item["url"]
         
-        # Step 3: Connect to DB
-        conn, cur = setup_database()
+        print(f"-----------------------------------------")
+        print(f"🍺 Processing: {beer_name}")
         
-        print("💾 Saving the IPA data permanently...")
-        # We save the name, a short snippet of the description, and the AI flavors
-        cur.execute(
-            "INSERT INTO beers (name, description, flavors) VALUES (%s, %s, %s)",
-            ("India Pale Ale", raw_text[:150] + "...", flavors)
-        )
+        raw_text = scrape_beer_info(url)
         
-        # Commit and close the connection
-        conn.commit()
-        cur.close()
-        conn.close()
-        
-        print("\n✅ Success! The AI flavors are now locked in your Neon Database!")
-    else:
-        print("❌ Pipeline failed at the scraping step.")
+        if "Failed" not in raw_text:
+            flavors = extract_flavors(raw_text)
+            
+            # Check if this beer is already in the database to avoid exact duplicates
+            cur.execute("SELECT id FROM beers WHERE name = %s;", (beer_name,))
+            existing = cur.fetchone()
+            
+            if not existing:
+                cur.execute(
+                    "INSERT INTO beers (name, description, flavors) VALUES (%s, %s, %s)",
+                    (beer_name, raw_text[:150] + "...", flavors)
+                )
+                conn.commit()
+                print(f"✅ Saved {beer_name} successfully!")
+            else:
+                print(f"⚠️ {beer_name} is already in the database, skipping insert.")
+        else:
+            print(f"❌ Skipping {beer_name} due to scraping failure.")
+            
+    cur.close()
+    conn.close()
+    print("\n🎉 Bulk seeding complete! Your menu is fully stocked.")
