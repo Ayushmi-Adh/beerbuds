@@ -1,72 +1,84 @@
 import os
+import json
+import time
 import psycopg2
+from google import genai
 from dotenv import load_dotenv
 
-from scraper import scrape_beer_info
-from ai_agent import extract_flavors
-
+# Load environment variables
 load_dotenv()
+client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-# A list of different beer styles on Wikipedia to build a real menu!
-BEER_URLS = [
-    {"name": "India Pale Ale", "url": "https://en.wikipedia.org/wiki/India_pale_ale"},
-    {"name": "Stout", "url": "https://en.wikipedia.org/wiki/Stout"},
-    {"name": "Pilsner", "url": "https://en.wikipedia.org/wiki/Pilsner"},
-    {"name": "Wheat Beer", "url": "https://en.wikipedia.org/wiki/Wheat_beer"},
-    {"name": "Porter", "url": "https://en.wikipedia.org/wiki/Porter_(beer)"}
+REAL_BEERS = [
+    {"name": "Barasinghe Pilsner Bier", "style": "Pilsner / Lager", "origin": "Nepal"},
+    {"name": "Barasinghe Pale Ale", "style": "Pale Ale", "origin": "Nepal"},
+    {"name": "Barasinghe Hazy IPA", "style": "Hazy IPA", "origin": "Nepal"},
+    {"name": "Barasinghe Yakoberfest", "style": "Marzen / Festbier", "origin": "Nepal"},
+    {"name": "Khumbu Kölsch", "style": "Kölsch", "origin": "Nepal"},
+    {"name": "Himalayan Red Ale", "style": "Red Ale", "origin": "Nepal"},
+    {"name": "Nepal IPA", "style": "India Pale Ale", "origin": "Nepal"},
+    {"name": "Sherpa Stout", "style": "Dry Stout", "origin": "Nepal"},
+    {"name": "Guinness Draught", "style": "Dry Stout", "origin": "Ireland"},
+    {"name": "Corona Extra", "style": "Pale Lager", "origin": "Mexico"}
 ]
 
-def setup_database():
-    print("🔌 Connecting to Neon Database...")
+def seed_database():
+    print("Connecting to database...")
     conn = psycopg2.connect(DATABASE_URL)
     cur = conn.cursor()
     
-    print("🏗️ Ensuring the 'beers' table exists...")
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS beers (
-            id SERIAL PRIMARY KEY,
-            name VARCHAR(100),
-            description TEXT,
-            flavors TEXT
-        );
-    """)
-    conn.commit()
-    return conn, cur
-
-if __name__ == "__main__":
-    print("🚀 Starting the Bulk AI -> Database Pipeline!\n")
-    
-    conn, cur = setup_database()
-    
-    for item in BEER_URLS:
-        beer_name = item["name"]
-        url = item["url"]
+    for item in REAL_BEERS:
+        name = item["name"]
+        style = item["style"]
+        origin = item["origin"]
         
-        print(f"-----------------------------------------")
-        print(f"🍺 Processing: {beer_name}")
+        # Check if the beer already exists to avoid duplicates
+        cur.execute("SELECT id FROM beers WHERE name = %s;", (name,))
+        if cur.fetchone():
+            print(f"Skipping '{name}', already in database.")
+            continue
+            
+        print(f"Synthesizing profile for: {name}...")
         
-        raw_text = scrape_beer_info(url)
+        prompt = f"""
+        Provide a sophisticated, upscale tasting profile for the commercial beer: '{name}' (Style: {style}, Origin: {origin}).
+        Return a JSON object with two fields:
+        1. "description": A short, elegant 2-sentence tasting description suitable for a wine-cellar application.
+        2. "flavors": Exactly 3 comma-separated flavor tags (e.g. "malty, citrus, crisp" or "roasted, coffee, smooth").
+        Output ONLY valid JSON.
+        """
         
-        if "Failed" not in raw_text:
-            flavors = extract_flavors(raw_text)
+        try:
+            response = client.models.generate_content(
+                model='gemini-3.5-flash',
+                contents=prompt,
+            )
+            raw_text = response.text.replace("```json", "").replace("```", "").strip()
+            data = json.loads(raw_text)
             
-            # Check if this beer is already in the database to avoid exact duplicates
-            cur.execute("SELECT id FROM beers WHERE name = %s;", (beer_name,))
-            existing = cur.fetchone()
+            # --- EXECUTE RAW SQL INSERT ---
+            cur.execute(
+                "INSERT INTO beers (name, description, flavors) VALUES (%s, %s, %s);",
+                (name, data["description"], data["flavors"])
+            )
+            conn.commit()  # Save the transaction
             
-            if not existing:
-                cur.execute(
-                    "INSERT INTO beers (name, description, flavors) VALUES (%s, %s, %s)",
-                    (beer_name, raw_text[:150] + "...", flavors)
-                )
-                conn.commit()
-                print(f"✅ Saved {beer_name} successfully!")
-            else:
-                print(f"⚠️ {beer_name} is already in the database, skipping insert.")
-        else:
-            print(f"❌ Skipping {beer_name} due to scraping failure.")
+            print(f"-> Successfully saved to DB: {name} | Flavors: {data['flavors']}")
             
+            # Pause to respect the API limit (5 requests / min)
+            time.sleep(15) 
+            
+        except Exception as e:
+            print(f"Error parsing {name}: {e}")
+            conn.rollback()  # Rollback on error so the DB doesn't freeze
+            if "429" in str(e):
+                print("Hit rate limit. Pausing for 60 seconds...")
+                time.sleep(60)
+                
     cur.close()
     conn.close()
-    print("\n🎉 Bulk seeding complete! Your menu is fully stocked.")
+    print("Database seeding complete!")
+
+if __name__ == "__main__":
+    seed_database()
