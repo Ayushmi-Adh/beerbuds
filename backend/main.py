@@ -35,7 +35,8 @@ def read_root():
 def get_beers():
     conn = get_db_connection()
     cur = conn.cursor()
-    cur.execute("SELECT id, name, description, flavors FROM beers ORDER BY id DESC;")
+    # Updated: Fetch the is_scanned column
+    cur.execute("SELECT id, name, description, flavors, is_scanned FROM beers ORDER BY id DESC;")
     db_beers = cur.fetchall()
     cur.close()
     conn.close()
@@ -46,11 +47,12 @@ def get_beers():
             "id": beer[0],
             "name": beer[1],
             "description": beer[2],
-            "flavors": beer[3]
+            "flavors": beer[3],
+            "is_scanned": beer[4] # Updated mapping
         })
     return {"beers": beer_list}
 
-# --- NEW: AI VISION SCAN-TO-ADD ENDPOINT ---
+# --- AI VISION SCAN-TO-ADD ENDPOINT ---
 @app.post("/api/scan-beer")
 async def scan_beer(file: UploadFile = File(...)):
     print(f"📸 Received beer image scan: {file.filename}")
@@ -97,26 +99,38 @@ async def scan_beer(file: UploadFile = File(...)):
         conn = get_db_connection()
         cur = conn.cursor()
         
-        # Check if beer already exists
-        cur.execute("SELECT id, name, description, flavors FROM beers WHERE LOWER(name) = LOWER(%s);", (beer_name,))
+        # Check if beer already exists in the global cellar
+        cur.execute("SELECT id, name, description, flavors, is_scanned FROM beers WHERE LOWER(name) = LOWER(%s);", (beer_name,))
         existing = cur.fetchone()
         
         if existing:
+            beer_id = existing[0]
+            is_scanned = existing[4]
+            
+            # If it exists but hasn't been collected yet, unlock it!
+            if not is_scanned:
+                cur.execute("UPDATE beers SET is_scanned = TRUE WHERE id = %s;", (beer_id,))
+                conn.commit()
+                message = "Bottle unlocked and added to your Passport!"
+            else:
+                message = "You already have this bottle in your Passport!"
+                
             cur.close()
             conn.close()
             return {
-                "message": "Beer already exists in cellar!",
+                "message": message,
                 "beer": {
-                    "id": existing[0],
+                    "id": beer_id,
                     "name": existing[1],
                     "description": existing[2],
-                    "flavors": existing[3]
+                    "flavors": existing[3],
+                    "is_scanned": True
                 }
             }
             
-        # Insert newly scanned beer into DB
+        # Insert newly scanned beer as collected (is_scanned = TRUE)
         cur.execute(
-            "INSERT INTO beers (name, description, flavors) VALUES (%s, %s, %s) RETURNING id;",
+            "INSERT INTO beers (name, description, flavors, is_scanned) VALUES (%s, %s, %s, TRUE) RETURNING id;",
             (beer_name, description, flavors)
         )
         new_id = cur.fetchone()[0]
@@ -128,12 +142,13 @@ async def scan_beer(file: UploadFile = File(...)):
         print(f"✨ Successfully scanned & added new beer: {beer_name}")
         
         return {
-            "message": "New beer added to cellar network!",
+            "message": "New discovery added to global cellar & Passport!",
             "beer": {
                 "id": new_id,
                 "name": beer_name,
                 "description": description,
-                "flavors": flavors
+                "flavors": flavors,
+                "is_scanned": True
             }
         }
         

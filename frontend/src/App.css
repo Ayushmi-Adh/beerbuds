@@ -1,72 +1,123 @@
-@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500&display=swap');
 
 :root {
-  --bg-deep: #090807;
-  --surface-cellar: #12100e;
-  --surface-elevated: #1a1714;
-  
-  --text-primary: #ede8df;
-  --text-muted: #8c857b;
-  
-  --accent-gold: #d4af37;
-  --accent-amber: #e07a5f;
-  
-  --border-subtle: rgba(237, 232, 223, 0.1);
-  --border-active: rgba(212, 175, 55, 0.4);
+  /* The Barahsinghe Organic Palette */
+  --bg-warm: #f9f6f0;
+  --text-primary: #2c241b;
+  --text-muted: #6b6358;
+  --accent-gold: #d69f3c;
+  --surface-cellar: #ffffff;
+  --border-subtle: rgba(44, 36, 27, 0.08);
 }
 
-body, html {
-  margin: 0;
-  padding: 0;
-  background-color: var(--bg-deep);
-  background-image: 
-    radial-gradient(circle at 15% 15%, rgba(224, 122, 95, 0.04) 0%, transparent 40%),
-    radial-gradient(circle at 85% 85%, rgba(212, 175, 55, 0.03) 0%, transparent 40%);
+body {
+  background-color: var(--bg-warm);
   color: var(--text-primary);
   font-family: 'Inter', sans-serif;
-  -webkit-font-smoothing: antialiased;
+  margin: 0;
   min-height: 100vh;
+  position: relative;
 }
 
-/* Editorial Serif Headings */
-h1, h2, .serif-title {
+/* 1. THE PAPER GRAIN TEXTURE */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* Typography */
+.serif-title {
   font-family: 'Instrument Serif', serif;
   font-weight: 400;
-  letter-spacing: -0.5px;
-}
-
-/* Magazine Journal Card */
-.journal-panel {
-  background: var(--surface-cellar);
-  border: 1px solid var(--border-subtle);
-  position: relative;
-  padding: 2.5rem;
-  transition: border-color 0.4s ease, box-shadow 0.4s ease;
-}
-
-.journal-panel::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; width: 4px; height: 100%;
-  background: var(--accent-gold);
-  opacity: 0.4;
 }
 
 .mono-tag {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.7rem;
+  font-family: 'Inter', sans-serif;
   text-transform: uppercase;
   letter-spacing: 2px;
+  font-size: 0.7rem;
+  font-weight: 600;
   color: var(--accent-gold);
-  border-bottom: 1px dashed var(--border-subtle);
-  padding-bottom: 2px;
 }
 
-/* --- PREMIUM BOTTLE STAGE --- */
+/* --- RESPONSIVE LAYOUT CLASSES --- */
+.app-header {
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.header-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1rem;
+}
+
+.main-layout {
+  display: grid;
+  grid-template-columns: 1fr 450px;
+  gap: 3rem;
+  align-items: start;
+  margin-top: 3rem;
+}
+
+/* --- UPGRADED TOPOLOGY CONTAINER --- */
+.topology-container {
+  background-color: var(--surface-cellar);
+  /* Premium dot-grid pattern */
+  background-image: radial-gradient(var(--border-subtle) 1px, transparent 1px);
+  background-size: 24px 24px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  /* Deep inner shadow for dimension */
+  box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.03);
+}
+
+/* Navigation */
+.view-tabs {
+  display: flex;
+  gap: 2rem;
+  margin-top: 1.5rem;
+}
+
+.view-tab {
+  background: transparent;
+  color: var(--text-muted);
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 6px 0;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.view-tab:hover {
+  color: var(--text-primary);
+}
+
+.view-tab.active {
+  color: var(--text-primary);
+  border-bottom: 2px solid var(--accent-gold);
+}
+
+/* --- THE BARAHSINGHE BOTTLE STAGE --- */
 .bottle-stage {
   position: relative;
   width: 100%;
-  height: 320px;
+  height: 380px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -74,129 +125,279 @@ h1, h2, .serif-title {
   cursor: crosshair;
 }
 
-/* The Frosted Glass Bottle */
+.bottle-stage::after {
+  content: '';
+  position: absolute;
+  bottom: 30px;
+  width: 120px;
+  height: 12px;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 50%;
+  filter: blur(5px);
+  transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+  z-index: 1;
+}
+
 .bottle-glass {
   position: relative;
   z-index: 10;
-  filter: drop-shadow(0 15px 35px rgba(0, 0, 0, 0.8));
-  transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1), filter 0.6s ease;
+  height: 280px;
+  transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .bottle-stage:hover .bottle-glass {
-  transform: translateY(-8px) scale(1.02);
-  filter: drop-shadow(0 25px 45px rgba(212, 175, 55, 0.2));
+  transform: translateY(-15px);
+}
+.bottle-stage:hover::after {
+  transform: scale(0.8);
+  opacity: 0.5;
 }
 
-/* Ingredient Pills (Hidden behind bottle initially) */
 .ingredient-peep {
   position: absolute;
   z-index: 5;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%) scale(0.5);
+  transform: translate(-50%, -50%) scale(0.5) rotate(0deg);
   opacity: 0;
-  background: rgba(26, 23, 20, 0.85);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid var(--border-subtle);
-  padding: 8px 14px;
-  border-radius: 40px;
+  transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: none;
   display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 8px;
-  color: var(--text-primary);
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.75rem;
-  white-space: nowrap;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
-  transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-  pointer-events: none; /* Let mouse pass through to bottle */
+  font-family: 'Instrument Serif', serif;
+  font-size: 1.2rem;
+  color: var(--text-muted);
 }
 
-/* Hover States: Fanning out the ingredients */
-.bottle-stage:hover .ingredient-pos-0 {
-  transform: translate(-140px, -90px) scale(1);
-  opacity: 1;
-  border-color: rgba(212, 175, 55, 0.3);
+.ingredient-img {
+  width: 90px; 
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.2));
+  transition: transform 0.4s ease;
 }
 
-.bottle-stage:hover .ingredient-pos-1 {
-  transform: translate(60px, -20px) scale(1);
-  opacity: 1;
-  border-color: rgba(212, 175, 55, 0.3);
+.bottle-stage:hover .ingredient-img {
+  transform: scale(1.1) rotate(5deg);
 }
+.bottle-stage:hover .ingredient-pos-0 { transform: translate(-150px, -100px) scale(1) rotate(-10deg); opacity: 1; }
+.bottle-stage:hover .ingredient-pos-1 { transform: translate(90px, -40px) scale(1) rotate(15deg); opacity: 1; }
+.bottle-stage:hover .ingredient-pos-2 { transform: translate(-120px, 80px) scale(1) rotate(-5deg); opacity: 1; }
 
-.bottle-stage:hover .ingredient-pos-2 {
-  transform: translate(-130px, 70px) scale(1);
-  opacity: 1;
-  border-color: rgba(212, 175, 55, 0.3);
-}
+.journal-panel { background: transparent; padding: 0; }
 
-.emoji-icon {
-  font-size: 1rem;
-  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
-}
-
-/* --- SCANNER BUTTON & MODAL --- */
 .scan-btn {
-  background: rgba(212, 175, 55, 0.1);
-  color: var(--accent-gold);
-  border: 1px solid var(--border-active);
-  padding: 10px 20px;
-  border-radius: 6px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.8rem;
+  background: var(--text-primary);
+  color: var(--bg-warm);
+  border: none;
+  padding: 12px 24px;
+  border-radius: 30px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 1px;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
   transition: all 0.3s ease;
 }
+.scan-btn:hover { background: var(--accent-gold); transform: translateY(-2px); box-shadow: 0 10px 20px rgba(214, 159, 60, 0.2); }
 
-.scan-btn:hover {
-  background: var(--accent-gold);
-  color: var(--bg-deep);
-  box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+/* --- PREMIUM BEER PASSPORT BOOK --- */
+.book-container {
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  margin: 2rem auto;
+  max-width: 900px;
+  height: 600px;
+  position: relative;
+  filter: drop-shadow(0 25px 35px rgba(0, 0, 0, 0.15));
 }
 
+.page-spine {
+  position: absolute;
+  top: 0; bottom: 0; left: 50%;
+  width: 60px;
+  transform: translateX(-50%);
+  background: linear-gradient(to right, rgba(0,0,0,0.03) 0%, rgba(0,0,0,0.12) 45%, rgba(255,255,255,0.6) 50%, rgba(0,0,0,0.12) 55%, rgba(0,0,0,0.03) 100%);
+  z-index: 10;
+  pointer-events: none;
+}
+
+.book-page {
+  flex: 1;
+  background: var(--bg-warm);
+  padding: 3rem 2rem;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+}
+
+.book-page.left {
+  border-radius: 12px 0 0 12px;
+  border: 1px solid var(--border-subtle);
+  border-right: none;
+  box-shadow: inset -10px 0 20px rgba(0,0,0,0.03);
+}
+
+.book-page.right {
+  border-radius: 0 12px 12px 0;
+  border: 1px solid var(--border-subtle);
+  border-left: none;
+  box-shadow: inset 10px 0 20px rgba(0,0,0,0.03);
+}
+
+.custom-stamp {
+  position: absolute;
+  top: 50%;
+  left: 40px;
+  transform: translateY(-50%) rotate(-15deg);
+  width: 110px;
+  height: auto;
+  opacity: 0.90;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+  filter: contrast(1.2);
+}
+.book-page.left .custom-stamp { transform: translateY(-50%) rotate(-20deg); }
+
+.book-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--surface-cellar);
+  border: 1px solid var(--border-subtle);
+  border-radius: 50%;
+  width: 50px; height: 50px;
+  cursor: pointer;
+  display: flex; justify-content: center; align-items: center;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  z-index: 20;
+  font-size: 1.2rem;
+  transition: all 0.2s ease;
+  color: var(--text-primary);
+}
+.book-nav:hover { background: var(--text-primary); color: var(--bg-warm); transform: translateY(-50%) scale(1.1); }
+.book-nav.prev { left: -70px; }
+.book-nav.next { right: -70px; }
+.book-nav:disabled { opacity: 0; pointer-events: none; }
+
+.passport-bottle-wrap {
+  width: 100px;
+  height: 280px;
+  position: relative;
+  margin-bottom: 2rem;
+  mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 280' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M42 20C42 12 45 10 50 10C55 10 58 12 58 20V70C58 85 75 105 75 125V250C75 265 70 270 50 270C30 270 25 265 25 250V125C25 105 42 85 42 70V20Z' fill='black'/%3E%3C/svg%3E");
+  mask-size: contain; mask-repeat: no-repeat; mask-position: center;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 280' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M42 20C42 12 45 10 50 10C55 10 58 12 58 20V70C58 85 75 105 75 125V250C75 265 70 270 50 270C30 270 25 265 25 250V125C25 105 42 85 42 70V20Z' fill='black'/%3E%3C/svg%3E");
+  -webkit-mask-size: contain; -webkit-mask-repeat: no-repeat; -webkit-mask-position: center;
+  background: rgba(44, 36, 27, 0.08);
+}
+
+.bottle-liquid {
+  position: absolute; bottom: 0; left: 0; width: 100%; height: 0%;
+  animation: fillUp 1.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+@keyframes fillUp { to { height: 85%; } }
+
+.bottle-liquid::after {
+  content: ''; position: absolute; top: -5px; left: -10%; width: 120%; height: 15px;
+  background: rgba(255, 255, 255, 0.3); border-radius: 50%; transform: rotate(-3deg);
+}
+
+.passport-name { font-family: 'Instrument Serif', serif; font-size: 2.2rem; text-align: center; color: var(--text-primary); line-height: 1; margin-bottom: 0.5rem; }
+
+/* --- PREMIUM BOTTOM DRAWER (SCANNER) --- */
 .modal-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(9, 8, 7, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(44, 36, 27, 0.5); 
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   z-index: 1000;
   display: flex;
   justify-content: center;
-  align-items: center;
-  padding: 2rem;
+  align-items: flex-end; 
+  padding: 0; 
 }
 
 .modal-content {
-  background: var(--surface-cellar);
+  background: var(--bg-warm);
   border: 1px solid var(--border-subtle);
-  border-radius: 8px;
-  padding: 2.5rem;
-  max-width: 480px;
+  border-bottom: none;
+  border-radius: 24px 24px 0 0; 
+  padding: 2.5rem 2rem 4rem; 
+  max-width: 650px;
   width: 100%;
   text-align: center;
   position: relative;
-  box-shadow: 0 25px 50px rgba(0,0,0,0.8);
+  box-shadow: 0 -20px 50px rgba(0, 0, 0, 0.15); 
+  transform: translateY(100%);
+  animation: slideUpDrawer 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 
-.upload-dropzone {
-  border: 2px dashed var(--border-subtle);
-  border-radius: 6px;
-  padding: 3rem 1.5rem;
-  margin: 1.5rem 0;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  background: rgba(255, 255, 255, 0.02);
+@keyframes slideUpDrawer {
+  to { transform: translateY(0); }
 }
 
-.upload-dropzone:hover {
-  border-color: var(--accent-gold);
-  background: rgba(212, 175, 55, 0.04);
+.modal-content::before {
+  content: '';
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 4px;
+  background: var(--border-subtle);
+  border-radius: 10px;
+}
+
+/* --- RESPONSIVE MEDIA QUERIES --- */
+@media (max-width: 1024px) {
+  .app-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.5rem;
+  }
+  .header-actions {
+    align-items: flex-start;
+  }
+  .header-actions p {
+    text-align: left !important;
+  }
+  .main-layout {
+    grid-template-columns: 1fr;
+  }
+  .topology-container {
+    height: 400px;
+  }
+  .book-container {
+    flex-direction: column;
+    height: auto;
+    filter: none;
+    gap: 2rem;
+  }
+  .page-spine { display: none; }
+  .book-page.left, .book-page.right {
+    border-radius: 12px;
+    border: 1px solid var(--border-subtle);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+  }
+  .book-nav.prev, .book-nav.next {
+    position: relative;
+    top: 0; left: 0; right: 0;
+    transform: none;
+    margin: 0 auto;
+    display: inline-flex;
+  }
+  .book-pagination {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    order: -1; 
+  }
 }
