@@ -1,5 +1,6 @@
 import os
 import json
+import time  # <-- NEW: Required for the retry loop pause
 import psycopg2
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -35,7 +36,6 @@ def read_root():
 def get_beers():
     conn = get_db_connection()
     cur = conn.cursor()
-    # Updated: Fetch the is_scanned column
     cur.execute("SELECT id, name, description, flavors, is_scanned FROM beers ORDER BY id DESC;")
     db_beers = cur.fetchall()
     cur.close()
@@ -48,7 +48,7 @@ def get_beers():
             "name": beer[1],
             "description": beer[2],
             "flavors": beer[3],
-            "is_scanned": beer[4] # Updated mapping
+            "is_scanned": beer[4]
         })
     return {"beers": beer_list}
 
@@ -72,17 +72,34 @@ async def scan_beer(file: UploadFile = File(...)):
         Output ONLY a valid JSON object with keys "name", "description", and "flavors". Do not include markdown codeblocks if possible.
         """
         
-        # Send image directly to Gemini 3.5 Flash Vision
-        response = client.models.generate_content(
-            model='gemini-3.5-flash',
-            contents=[
-                types.Part.from_bytes(
-                    data=image_bytes,
-                    mime_type=file.content_type or 'image/jpeg'
-                ),
-                prompt
-            ]
-        )
+        # --- ROBUST RETRY LOOP FOR 503 ERRORS ---
+        max_retries = 8
+        response = None
+        
+        for attempt in range(max_retries):
+            try:
+                # Send image directly to Gemini 3.5 Flash Vision
+                response = client.models.generate_content(
+                    model='gemini-3.5-flash',
+                    contents=[
+                        types.Part.from_bytes(
+                            data=image_bytes,
+                            mime_type=file.content_type or 'image/jpeg'
+                        ),
+                        prompt
+                    ]
+                )
+                break  # If successful, exit the loop!
+                
+            except Exception as api_error:
+                if "503" in str(api_error) and attempt < max_retries - 1:
+                    wait_time = 2 ** attempt  # Exponential backoff: Waits 1s, then 2s, then 4s...
+                    print(f"⚠️ Gemini API busy (503). Retrying in {wait_time} seconds...")
+                    time.sleep(wait_time)
+                else:
+                    # If it's not a 503, or we ran out of retries, fail loudly
+                    raise api_error
+        # ----------------------------------------
         
         # Clean response
         raw_text = response.text.replace("```json", "").replace("```", "").strip()
@@ -107,7 +124,6 @@ async def scan_beer(file: UploadFile = File(...)):
             beer_id = existing[0]
             is_scanned = existing[4]
             
-            # If it exists but hasn't been collected yet, unlock it!
             if not is_scanned:
                 cur.execute("UPDATE beers SET is_scanned = TRUE WHERE id = %s;", (beer_id,))
                 conn.commit()
@@ -128,7 +144,7 @@ async def scan_beer(file: UploadFile = File(...)):
                 }
             }
             
-        # Insert newly scanned beer as collected (is_scanned = TRUE)
+        # Insert newly scanned beer as collected
         cur.execute(
             "INSERT INTO beers (name, description, flavors, is_scanned) VALUES (%s, %s, %s, TRUE) RETURNING id;",
             (beer_name, description, flavors)
@@ -154,4 +170,5 @@ async def scan_beer(file: UploadFile = File(...)):
         
     except Exception as e:
         print(f"Error scanning beer: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        # This translates the Python crash into a clean, readable error on the frontend
+        raise HTTPException(status_code=500, detail="AI Neural Network is currently at maximum capacity. Please try again in a few moments.")
