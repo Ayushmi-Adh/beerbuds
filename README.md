@@ -1,3 +1,4 @@
 # Beerbuds
 
-An AI-powered beer flavor discovery and recommendation engine.
+An AI-powered beer flavor discovery and recommendation engine. 
+Beer Passport
