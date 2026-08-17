@@ -68,6 +68,10 @@ function App() {
   const [currentView, setCurrentView] = useState<'cellar' | 'passport'>('cellar');
   const [isViewTransitioning, setIsViewTransitioning] = useState(false);
   const [transitionBubbles, setTransitionBubbles] = useState<{ left: number; delay: number; duration: number }[]>([]);
+  const [tabBubbles, setTabBubbles] = useState<{ left: number; delay: number }[]>([]);
+  const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
+  const cellarTabRef = useRef<HTMLButtonElement>(null);
+  const passportTabRef = useRef<HTMLButtonElement>(null);
   const [bookIndex, setBookIndex] = useState(0);
   const [flipPhase, setFlipPhase] = useState<FlipPhase>('idle');
 
@@ -83,6 +87,18 @@ function App() {
   useEffect(() => {
     fetchBeers();
   }, []);
+
+  useEffect(() => {
+    const measure = () => {
+      const activeRef = currentView === 'cellar' ? cellarTabRef.current : passportTabRef.current;
+      if (activeRef) {
+        setIndicatorStyle({ left: activeRef.offsetLeft, width: activeRef.offsetWidth });
+      }
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [currentView]);
 
   const processScanFile = async (file: File) => {
     setIsScanning(true);
@@ -144,6 +160,12 @@ function App() {
         left: 4 + Math.random() * 92,
         delay: Math.random() * 0.5,
         duration: 1 + Math.random() * 0.9,
+      }))
+    );
+    setTabBubbles(
+      Array.from({ length: 6 }).map(() => ({
+        left: 10 + Math.random() * 80,
+        delay: Math.random() * 0.25,
       }))
     );
     setIsViewTransitioning(true);
@@ -408,11 +430,16 @@ function App() {
             BeerBuds<span style={{ color: 'var(--accent-gold)' }}>.</span>
           </h1>
           
-          <div className="view-tabs">
-            <button className={`view-tab ${currentView === 'cellar' ? 'active' : ''}`} onClick={() => switchView('cellar')}>
+          <div className="view-tabs-glass">
+            <div className="view-tabs-indicator" style={{ left: indicatorStyle.left, width: indicatorStyle.width }}>
+              {isViewTransitioning && tabBubbles.map((b, i) => (
+                <span key={i} className="tab-fizz-bubble" style={{ left: `${b.left}%`, animationDelay: `${b.delay}s` }} />
+              ))}
+            </div>
+            <button ref={cellarTabRef} className={`view-tab ${currentView === 'cellar' ? 'active' : ''}`} onClick={() => switchView('cellar')}>
               BEER Topology
             </button>
-            <button className={`view-tab ${currentView === 'passport' ? 'active' : ''}`} onClick={() => switchView('passport')}>
+            <button ref={passportTabRef} className={`view-tab ${currentView === 'passport' ? 'active' : ''}`} onClick={() => switchView('passport')}>
               BEER Passport
             </button>
           </div>
