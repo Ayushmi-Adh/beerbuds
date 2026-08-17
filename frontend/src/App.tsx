@@ -28,6 +28,8 @@ type FlipPhase = 'idle' | 'out-next' | 'in-next' | 'out-prev' | 'in-prev';
 type ScanPhase = 'idle' | 'scanning' | 'success';
 
 const FLIP_MS = 360; // keep in sync with the transition duration in App.css (.book-page)
+// This grabs the live URL from Vercel, or defaults to localhost for local testing
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 const TOTAL_STYLES_TARGET = 40;
 
 // Every node color lives inside the same amber / copper / malt family as the
@@ -111,7 +113,7 @@ function App() {
   const progressTimerRef = useRef<number | null>(null);
 
   const fetchBeers = () => {
-    fetch('http://127.0.0.1:8000/api/beers')
+    fetch(`${API_BASE_URL}/api/beers`)
       .then(response => response.json())
       .then(data => setBeers(data.beers))
       .catch(error => console.error("Error fetching data:", error));
@@ -204,7 +206,6 @@ function App() {
   // doesn't stream progress, so this eases toward 90% and completes on response.
   useEffect(() => {
     if (scanPhase === 'scanning') {
-      setScanProgress(0);
       progressTimerRef.current = window.setInterval(() => {
         setScanProgress(p => (p < 90 ? p + Math.random() * 8 : p));
       }, 260);
@@ -218,6 +219,7 @@ function App() {
   }, [scanPhase]);
 
   const processScanFile = async (file: File) => {
+    setScanProgress(0);
     setIsScanning(true);
     setScanPhase('scanning');
     setScanMessage("Extracting botanical profiles...");
@@ -227,7 +229,7 @@ function App() {
     formData.append('file', file);
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/scan-beer', {
+      const response = await fetch(`${API_BASE_URL}/api/beers`, {
         method: 'POST',
         body: formData,
       });
