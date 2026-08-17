@@ -73,7 +73,7 @@ async def scan_beer(file: UploadFile = File(...)):
         """
         
         # --- ROBUST RETRY LOOP FOR 503 ERRORS ---
-        max_retries = 8
+        max_retries = 2
         response = None
         
         for attempt in range(max_retries):
