@@ -10,6 +10,7 @@
   --accent-copper: #a85d2e;
   --surface-cellar: #ffffff;
   --border-subtle: rgba(44, 36, 27, 0.08);
+  --foam: #fffaf0;
 }
 
 body {
@@ -23,7 +24,27 @@ body {
   margin: 0;
   min-height: 100vh;
   position: relative;
+  transition: background 0.6s ease, color 0.4s ease;
 }
+
+/* --- CELLAR MODE (dark lantern-lit theme) --- */
+body.theme-dark {
+  --bg-warm: #17120c;
+  --text-primary: #f1e6d3;
+  --text-muted: #b3a48c;
+  --accent-gold: #e8b14e;
+  --accent-gold-deep: #c9902f;
+  --accent-copper: #c98550;
+  --surface-cellar: #221a12;
+  --border-subtle: rgba(241, 230, 211, 0.1);
+  --foam: #3c3122;
+  background:
+    radial-gradient(ellipse 900px 550px at 15% -5%, rgba(232, 177, 78, 0.10), transparent 60%),
+    radial-gradient(ellipse 700px 550px at 100% 15%, rgba(201, 144, 47, 0.09), transparent 55%),
+    radial-gradient(circle 500px at 50% 100%, rgba(201, 133, 80, 0.08), transparent 65%),
+    linear-gradient(180deg, #120d08 0%, #17120c 45%, #1c150e 100%);
+}
+body.theme-dark::before { opacity: 0.6; }
 
 /* 1. THE PAPER GRAIN TEXTURE */
 body::before {
@@ -33,20 +54,6 @@ body::before {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.04'/%3E%3C/svg%3E");
   pointer-events: none;
   z-index: 9999;
-}
-
-/* 2. HOP LEAF + WHEAT GRAIN TEXTURE (beer-themed background motif) */
-body::after {
-  content: "";
-  position: fixed;
-  top: 0; left: 0; width: 100vw; height: 100vh;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'%3E%3Cg stroke='%235c4d38' stroke-width='1.1' fill='none'%3E%3Cpath d='M45 35 C28 52 28 78 45 95 C62 78 62 52 45 35 Z'/%3E%3Cpath d='M45 35 L45 95'/%3E%3Cpath d='M45 50 L34 60 M45 50 L56 60 M45 66 L34 76 M45 66 L56 76'/%3E%3Cpath d='M175 150 L175 225'/%3E%3Cellipse cx='167' cy='160' rx='5' ry='9' transform='rotate(-30 167 160)'/%3E%3Cellipse cx='183' cy='160' rx='5' ry='9' transform='rotate(30 183 160)'/%3E%3Cellipse cx='167' cy='176' rx='5' ry='9' transform='rotate(-30 167 176)'/%3E%3Cellipse cx='183' cy='176' rx='5' ry='9' transform='rotate(30 183 176)'/%3E%3Cellipse cx='167' cy='192' rx='5' ry='9' transform='rotate(-30 167 192)'/%3E%3Cellipse cx='183' cy='192' rx='5' ry='9' transform='rotate(30 183 192)'/%3E%3Cpath d='M110 200 C96 212 96 230 110 240' /%3E%3C/g%3E%3C/svg%3E");
-  background-repeat: repeat;
-  background-size: 240px 240px;
-  mix-blend-mode: multiply;
-  opacity: 0.05;
-  pointer-events: none;
-  z-index: 1;
 }
 
 /* Typography */
@@ -88,29 +95,645 @@ body::after {
   gap: 1rem;
 }
 
-.main-layout {
-  display: grid;
-  grid-template-columns: 1fr 450px;
-  gap: 3rem;
-  align-items: start;
-  margin-top: 3rem;
+/* --- KINETIC HEADER: wordmark ripples once like liquid settling, then rests --- */
+.wordmark-ripple {
+  animation: wordmarkRipple 1.5s cubic-bezier(0.22, 1, 0.36, 1) 0.1s 1 both;
+  transform-origin: left center;
+}
+@keyframes wordmarkRipple {
+  0%   { opacity: 0; filter: blur(6px); transform: scaleY(0.7) translateY(10px) skewX(3deg); }
+  38%  { opacity: 1; filter: blur(0.5px); transform: scaleY(1.05) translateY(-3px) skewX(-1deg); }
+  58%  { transform: scaleY(0.98) translateY(1.5px) skewX(0.5deg); }
+  76%  { transform: scaleY(1.015) translateY(-0.5px) skewX(0deg); }
+  100% { opacity: 1; filter: blur(0); transform: scaleY(1) translateY(0) skewX(0deg); }
 }
 
-/* --- UPGRADED TOPOLOGY CONTAINER --- */
-.topology-container {
-  background-color: var(--surface-cellar);
-  background-image:
-    radial-gradient(ellipse 500px 300px at 20% 0%, rgba(214, 159, 60, 0.06), transparent 60%),
-    radial-gradient(var(--border-subtle) 1px, transparent 1px);
-  background-size: 100% 100%, 24px 24px;
-  border-radius: 16px;
-  overflow: hidden;
+/* --- HEADER TOGGLES (Cellar Mode / Mute) --- */
+.header-toggles {
+  display: flex;
+  gap: 8px;
+}
+.icon-toggle {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  background: linear-gradient(135deg, rgba(255,255,255,0.55), rgba(255,255,255,0.22));
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: inset 0 1px 1px rgba(255,255,255,0.7), 0 4px 12px -8px rgba(44,36,27,0.3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+}
+.icon-toggle:hover {
+  transform: translateY(-2px) scale(1.08);
+  box-shadow: inset 0 1px 1px rgba(255,255,255,0.8), 0 8px 18px -10px rgba(214, 159, 60, 0.5);
+}
+.icon-toggle:active { transform: scale(0.94); }
+
+/* --- UNIFIED GLASS TOPOLOGY STAGE ---
+   One shared frosted-amber surface holds both the graph and the specimen
+   card. No more grid columns / hard seam between a white box and a
+   transparent one — everything sits on the same glass. */
+.topology-stage {
   position: relative;
-  /* Soft, blurred edge instead of a hard ruled border */
+  margin-top: 3rem;
+  min-height: 620px;
+  border-radius: 22px;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 700px 420px at 18% 8%, rgba(255, 232, 184, 0.55), transparent 55%),
+    radial-gradient(ellipse 600px 500px at 100% 100%, rgba(168, 93, 46, 0.14), transparent 60%),
+    linear-gradient(160deg, rgba(255, 253, 249, 0.7) 0%, rgba(249, 246, 240, 0.55) 55%, rgba(246, 240, 228, 0.65) 100%);
+  backdrop-filter: blur(22px) saturate(160%);
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.6);
   box-shadow:
-    inset 0 0 60px rgba(0, 0, 0, 0.03),
-    inset 0 0 0 1px rgba(44, 36, 27, 0.05),
-    0 20px 45px -20px rgba(44, 36, 27, 0.18);
+    inset 0 1px 1px rgba(255, 255, 255, 0.7),
+    inset 0 -30px 60px -30px rgba(168, 93, 46, 0.12),
+    0 30px 60px -30px rgba(44, 36, 27, 0.25);
+  transition: background 0.6s ease, border-color 0.6s ease;
+}
+body.theme-dark .topology-stage {
+  background:
+    radial-gradient(ellipse 700px 420px at 18% 8%, rgba(201, 144, 47, 0.16), transparent 55%),
+    radial-gradient(ellipse 600px 500px at 100% 100%, rgba(201, 133, 80, 0.14), transparent 60%),
+    linear-gradient(160deg, rgba(34, 26, 18, 0.75) 0%, rgba(23, 18, 12, 0.65) 55%, rgba(28, 21, 14, 0.7) 100%);
+  border-color: rgba(241, 230, 211, 0.12);
+}
+
+/* faint bead-pool texture on the glass floor */
+.topology-stage::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(214, 159, 60, 0.14) 1px, transparent 1px);
+  background-size: 26px 26px;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+/* ambient fizz rising inside the stage — slow, sparse, never noisy */
+.topology-stage::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 12% 88%, rgba(255,255,255,0.5) 0 1.5px, transparent 2px),
+    radial-gradient(circle at 28% 92%, rgba(255,255,255,0.4) 0 1px, transparent 2px),
+    radial-gradient(circle at 47% 85%, rgba(255,255,255,0.45) 0 1.5px, transparent 2px),
+    radial-gradient(circle at 66% 90%, rgba(255,255,255,0.35) 0 1px, transparent 2px),
+    radial-gradient(circle at 82% 86%, rgba(255,255,255,0.4) 0 1.5px, transparent 2px);
+  background-size: 100% 100%;
+  pointer-events: none;
+  opacity: 0.6;
+  animation: stageFizz 7s ease-in-out infinite;
+}
+@keyframes stageFizz {
+  0%, 100% { transform: translateY(0); opacity: 0.15; }
+  50% { transform: translateY(-18px); opacity: 0.5; }
+}
+
+/* --- AMBIENT MOOD LAYERS: background hue shifts with the selected beer's
+   flavor family. Sit above the base stage gradient, below the graph. --- */
+.mood-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  transition: opacity 1.1s ease;
+}
+.mood-roasted { background: radial-gradient(ellipse 780px 560px at 26% 22%, rgba(62, 39, 35, 0.30), transparent 65%); }
+.mood-hoppy   { background: radial-gradient(ellipse 780px 560px at 74% 18%, rgba(168, 93, 46, 0.26), transparent 65%); }
+.mood-floral  { background: radial-gradient(ellipse 780px 560px at 50% 82%, rgba(214, 159, 60, 0.28), transparent 65%); }
+body.theme-dark .mood-roasted { background: radial-gradient(ellipse 780px 560px at 26% 22%, rgba(30, 18, 14, 0.55), transparent 65%); }
+body.theme-dark .mood-hoppy   { background: radial-gradient(ellipse 780px 560px at 74% 18%, rgba(201, 133, 80, 0.22), transparent 65%); }
+body.theme-dark .mood-floral  { background: radial-gradient(ellipse 780px 560px at 50% 82%, rgba(232, 177, 78, 0.20), transparent 65%); }
+
+/* --- CURSOR-REACTIVE GLOW: warm spot following the pointer, like light
+   passing through a glass of beer. --x/--y set inline via JS. --- */
+.stage-glow {
+  position: absolute;
+  z-index: 1;
+  width: 460px; height: 460px;
+  left: var(--glow-x, 50%);
+  top: var(--glow-y, 40%);
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(255, 232, 184, 0.30) 0%, rgba(214, 159, 60, 0.10) 45%, transparent 72%);
+  mix-blend-mode: screen;
+  pointer-events: none;
+  opacity: 0.85;
+  transition: opacity 0.4s ease;
+}
+body.theme-dark .stage-glow {
+  background: radial-gradient(circle, rgba(232, 177, 78, 0.22) 0%, rgba(201, 133, 80, 0.08) 45%, transparent 72%);
+  mix-blend-mode: plus-lighter;
+}
+
+/* --- ANIMATED CONDENSATION SHIMMER: replaces flat texture on glass
+   surfaces (topology stage + specimen card) with drifting dew highlights. --- */
+.shimmer-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  border-radius: inherit;
+  background-image:
+    radial-gradient(circle at 12% 22%, rgba(255,255,255,0.55) 0 1px, transparent 2px),
+    radial-gradient(circle at 82% 15%, rgba(255,255,255,0.4) 0 1px, transparent 2px),
+    radial-gradient(circle at 45% 68%, rgba(255,255,255,0.45) 0 1px, transparent 2px),
+    radial-gradient(circle at 68% 42%, rgba(255,255,255,0.35) 0 1px, transparent 2px),
+    radial-gradient(circle at 25% 80%, rgba(255,255,255,0.4) 0 1px, transparent 2px),
+    radial-gradient(circle at 92% 75%, rgba(255,255,255,0.35) 0 1px, transparent 2px);
+  background-size: 160% 160%;
+  background-position: 0% 0%;
+  opacity: 0.28;
+  mix-blend-mode: overlay;
+  animation: shimmerDrift 17s ease-in-out infinite alternate;
+}
+@keyframes shimmerDrift {
+  0%   { background-position: 0% 10%; opacity: 0.22; }
+  50%  { background-position: 60% 55%; opacity: 0.34; }
+  100% { background-position: 100% 30%; opacity: 0.24; }
+}
+
+.topology-eyebrow {
+  position: absolute;
+  top: 22px;
+  left: 26px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+/* --- FLAVOR FAMILY FILTER PILLS --- */
+.family-pills {
+  display: flex;
+  gap: 6px;
+}
+.family-pill {
+  padding: 7px 15px;
+  border-radius: 999px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.66rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  cursor: pointer;
+  background: linear-gradient(135deg, rgba(255,255,255,0.5), rgba(255,255,255,0.2));
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: var(--text-muted);
+  box-shadow: inset 0 1px 1px rgba(255,255,255,0.7);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.35s ease, color 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
+}
+.family-pill:hover:not(.active) {
+  transform: translateY(-1px);
+  border-color: rgba(214, 159, 60, 0.4);
+}
+.family-pill-roasted.active {
+  background: linear-gradient(150deg, #7a5233 0%, #3e2723 100%);
+  color: #fbeedd;
+  border-color: transparent;
+  box-shadow: 0 8px 18px -10px rgba(62, 39, 35, 0.6);
+}
+.family-pill-hoppy.active {
+  background: linear-gradient(150deg, #e8935a 0%, #a85d2e 100%);
+  color: #fff6ee;
+  border-color: transparent;
+  box-shadow: 0 8px 18px -10px rgba(168, 93, 46, 0.55);
+}
+.family-pill-floral.active {
+  background: linear-gradient(150deg, #ffe8b8 0%, #d69f3c 100%);
+  color: #533c11;
+  border-color: transparent;
+  box-shadow: 0 8px 18px -10px rgba(214, 159, 60, 0.5);
+}
+
+.topology-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.6), rgba(255,255,255,0.28));
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  border: 1px solid rgba(255,255,255,0.65);
+  box-shadow: inset 0 1px 1px rgba(255,255,255,0.8), 0 6px 16px -10px rgba(44,36,27,0.25);
+  color: var(--text-muted);
+  transition: box-shadow 0.25s ease, border-color 0.25s ease;
+}
+.topology-search:focus-within {
+  border-color: rgba(214, 159, 60, 0.55);
+  box-shadow: inset 0 1px 1px rgba(255,255,255,0.8), 0 0 0 3px rgba(214, 159, 60, 0.15);
+}
+.topology-search input {
+  border: none;
+  background: transparent;
+  outline: none;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8rem;
+  color: var(--text-primary);
+  width: 150px;
+}
+.topology-search input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.75;
+}
+.topology-search-clear {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+}
+.topology-search-clear:hover {
+  color: var(--accent-gold-deep);
+}
+
+.topology-svg {
+  display: block;
+  width: 100%;
+  height: 620px;
+  position: relative;
+  z-index: 3;
+}
+
+/* flowing "liquid" dash animation on every connecting link */
+.topology-link {
+  stroke-dasharray: 3 7;
+  animation: linkFlow 5s linear infinite;
+}
+.topology-link-active {
+  stroke-dasharray: 4 5;
+  animation: linkFlow 1.8s linear infinite;
+}
+@keyframes linkFlow {
+  to { stroke-dashoffset: -100; }
+}
+
+/* --- IDLE BOB: beads look suspended in liquid, gently drifting --- */
+.bead-bob {
+  animation: beadBob 3.6s ease-in-out infinite;
+  transform-origin: center;
+}
+@keyframes beadBob {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%      { transform: translateY(-4.5px) rotate(1.4deg); }
+}
+
+/* the floating glass specimen card, resting inside the same stage.
+   Slightly more opaque than before so the topology beads visibly sit
+   BEHIND it — the card reads as a solid pane of glass, not a tint. */
+.specimen-glass-card {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  bottom: 24px;
+  width: 330px;
+  z-index: 5;
+  padding: 1.75rem 1.5rem 2rem;
+  border-radius: 18px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background:
+    linear-gradient(160deg, rgba(255, 255, 255, 0.82) 0%, rgba(255, 253, 248, 0.68) 100%);
+  backdrop-filter: blur(26px) saturate(180%);
+  -webkit-backdrop-filter: blur(26px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.9),
+    inset 0 -12px 22px -14px rgba(168, 93, 46, 0.14),
+    0 18px 40px -18px rgba(44, 36, 27, 0.28);
+  transition: box-shadow 0.35s ease, border-color 0.35s ease, background 0.6s ease;
+  animation: cardSettle 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+  /* fade masks top + bottom so content dissolves instead of hitting a hard edge */
+  mask-image: linear-gradient(180deg, transparent 0, #000 14px, #000 calc(100% - 22px), transparent 100%);
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 14px, #000 calc(100% - 22px), transparent 100%);
+  scrollbar-gutter: stable;
+}
+.specimen-glass-card.has-beer {
+  border-color: rgba(214, 159, 60, 0.5);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.9),
+    inset 0 -12px 22px -14px rgba(168, 93, 46, 0.14),
+    0 22px 48px -20px rgba(168, 93, 46, 0.4);
+}
+body.theme-dark .specimen-glass-card {
+  background: linear-gradient(160deg, rgba(34, 26, 18, 0.85) 0%, rgba(23, 18, 12, 0.72) 100%);
+  border-color: rgba(241, 230, 211, 0.14);
+}
+body.theme-dark .specimen-glass-card.has-beer {
+  border-color: rgba(232, 177, 78, 0.4);
+}
+.specimen-glass-card .shimmer-layer,
+.topology-stage > .shimmer-layer { z-index: 1; }
+@keyframes cardSettle {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.specimen-content { position: relative; z-index: 2; }
+.specimen-empty-state { position: relative; z-index: 2; }
+
+/* Themed scrollbar — thin amber, nearly invisible, so the description
+   reads as a continuous pour rather than a scrollbox. */
+.specimen-glass-card {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(168, 93, 46, 0.35) transparent;
+}
+.specimen-glass-card::-webkit-scrollbar {
+  width: 5px;
+}
+.specimen-glass-card::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 16px 0;
+}
+.specimen-glass-card::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(214, 159, 60, 0.45), rgba(168, 93, 46, 0.45));
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+.specimen-glass-card::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(214, 159, 60, 0.7), rgba(168, 93, 46, 0.7));
+}
+
+/* --- BOTTLE + INGREDIENT POP-UP (compact, sized for the specimen card) --- */
+.bottle-stage {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0.5rem 0 1.25rem;
+  cursor: crosshair;
+}
+
+.bottle-stage::after {
+  content: '';
+  position: absolute;
+  bottom: 14px;
+  width: 70px;
+  height: 8px;
+  background: rgba(0, 0, 0, 0.15);
+  border-radius: 50%;
+  filter: blur(4px);
+  transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+  z-index: 1;
+}
+
+.bottle-glass {
+  position: relative;
+  z-index: 10;
+  height: 190px;
+  transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.bottle-stage:hover .bottle-glass {
+  transform: translateY(-10px);
+}
+.bottle-stage:hover::after {
+  transform: scale(0.8);
+  opacity: 0.5;
+}
+
+.ingredient-peep {
+  position: absolute;
+  z-index: 5;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.5) rotate(0deg);
+  opacity: 0;
+  transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-family: 'Instrument Serif', serif;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.ingredient-img {
+  width: 52px;
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 10px 16px rgba(0, 0, 0, 0.2));
+  transition: transform 0.4s ease;
+}
+
+.bottle-stage:hover .ingredient-img {
+  transform: scale(1.1) rotate(5deg);
+}
+.bottle-stage:hover .ingredient-pos-0 { transform: translate(-88px, -58px) scale(1) rotate(-10deg); opacity: 1; }
+.bottle-stage:hover .ingredient-pos-1 { transform: translate(62px, -24px) scale(1) rotate(15deg); opacity: 1; }
+.bottle-stage:hover .ingredient-pos-2 { transform: translate(-70px, 46px) scale(1) rotate(-5deg); opacity: 1; }
+
+.specimen-empty-state {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  text-align: center;
+}
+.specimen-empty-glyph {
+  font-size: 1.6rem;
+  color: var(--accent-gold);
+  opacity: 0.7;
+  animation: emptyPulse 2.6s ease-in-out infinite;
+}
+@keyframes emptyPulse {
+  0%, 100% { transform: scale(1); opacity: 0.5; }
+  50% { transform: scale(1.12); opacity: 0.9; }
+}
+
+.journal-panel { background: transparent; padding: 0; }
+
+/* --- TASTING WHEEL / CHIPS TOGGLE --- */
+.chart-toggle {
+  display: flex;
+  gap: 6px;
+  margin: 0.75rem 0 1rem;
+}
+.chart-toggle button {
+  flex: 1;
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border-subtle);
+  background: rgba(0,0,0,0.02);
+  color: var(--text-muted);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  cursor: pointer;
+  transition: background 0.25s ease, color 0.25s ease, box-shadow 0.25s ease;
+}
+.chart-toggle button.active {
+  background: linear-gradient(135deg, var(--accent-gold), var(--accent-gold-deep));
+  color: #fffaf0;
+  border-color: transparent;
+  box-shadow: 0 6px 14px -8px rgba(214, 159, 60, 0.55);
+}
+.chart-toggle button:hover:not(.active) {
+  color: var(--text-primary);
+}
+
+.tasting-wheel-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.1rem;
+}
+.tasting-wheel {
+  max-width: 190px;
+  animation: wheelFadeIn 0.4s ease;
+}
+@keyframes wheelFadeIn {
+  from { opacity: 0; transform: scale(0.85); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.wheel-ring { fill: none; stroke: rgba(168, 93, 46, 0.16); stroke-width: 1; }
+.wheel-axis { stroke: rgba(168, 93, 46, 0.22); stroke-width: 1; }
+.wheel-shape {
+  fill: rgba(214, 159, 60, 0.28);
+  stroke: var(--accent-gold-deep);
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+  animation: wheelDraw 0.7s cubic-bezier(0.25, 1, 0.5, 1);
+  transform-origin: center;
+}
+@keyframes wheelDraw {
+  from { transform: scale(0.6); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+.wheel-point { fill: var(--accent-gold-deep); }
+.wheel-labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+}
+.wheel-label {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.63rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(0,0,0,0.03);
+  padding: 3px 9px;
+  border-radius: 20px;
+}
+
+/* --- SHARED-ELEMENT POUR: a small droplet travels from the clicked bead
+   to the specimen card, spawned as a body-level element by pourIntoCard(). --- */
+.pour-drop {
+  position: fixed;
+  width: 9px; height: 9px;
+  border-radius: 50% 50% 50% 0;
+  background: var(--drop-color, var(--accent-gold));
+  transform: translate(-50%, -50%) rotate(45deg) scale(0.5);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 4000;
+  box-shadow: 0 0 10px rgba(214, 159, 60, 0.55);
+}
+.pour-drop-active {
+  animation: pourDropTravel 0.62s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+@keyframes pourDropTravel {
+  0%   { opacity: 0; transform: translate(-50%, -50%) rotate(45deg) scale(0.4); }
+  14%  { opacity: 1; transform: translate(-50%, -50%) rotate(45deg) scale(1.1); }
+  82%  { opacity: 0.95; }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--drop-dx, 0px)), calc(-50% + var(--drop-dy, 0px))) rotate(45deg) scale(0.25);
+  }
+}
+
+/* --- SCAN BUTTON — a little beer pour + condensation drip on hover --- */
+.scan-btn {
+  position: relative;
+  background: linear-gradient(160deg, #3c3226 0%, var(--text-primary) 55%, #1c1610 100%);
+  color: var(--bg-warm);
+  border: none;
+  padding: 12px 24px;
+  border-radius: 30px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  overflow: visible;
+  box-shadow: 0 6px 16px -6px rgba(44, 36, 27, 0.4);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease, background 0.4s ease;
+}
+.scan-btn:hover {
+  background: linear-gradient(160deg, var(--accent-gold) 0%, var(--accent-gold-deep) 60%, var(--accent-copper) 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 14px 28px -10px rgba(214, 159, 60, 0.45);
+}
+.scan-btn::before, .scan-btn::after {
+  content: '';
+  position: absolute;
+  bottom: 6px;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.8);
+  opacity: 0;
+  pointer-events: none;
+}
+.scan-btn::before { left: 30%; }
+.scan-btn::after { left: 62%; width: 3px; height: 3px; }
+.scan-btn:hover::before { animation: fizzUp 1.1s ease-in infinite; }
+.scan-btn:hover::after { animation: fizzUp 1.4s ease-in infinite 0.3s; }
+
+@keyframes fizzUp {
+  0% { opacity: 0; transform: translateY(0) scale(1); }
+  15% { opacity: 0.9; }
+  100% { opacity: 0; transform: translateY(-26px) scale(0.4); }
+}
+
+/* condensation droplets running down a button's face on hover */
+.condensation-btn { position: relative; }
+.condensation-drip {
+  position: absolute;
+  top: 14%;
+  width: 2px;
+  height: 0;
+  border-radius: 0 0 3px 3px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.75), rgba(255,255,255,0));
+  opacity: 0;
+  pointer-events: none;
+}
+.condensation-drip:nth-child(1) { left: 22%; }
+.condensation-drip:nth-child(2) { left: 50%; }
+.condensation-drip:nth-child(3) { left: 76%; }
+.condensation-btn:hover .condensation-drip {
+  animation: dripDown 1.4s ease-in infinite;
+}
+.condensation-btn:hover .condensation-drip:nth-child(2) { animation-delay: 0.35s; }
+.condensation-btn:hover .condensation-drip:nth-child(3) { animation-delay: 0.7s; }
+@keyframes dripDown {
+  0%   { height: 0; opacity: 0; }
+  18%  { opacity: 0.85; }
+  100% { height: 22px; opacity: 0; }
 }
 
 /* --- LIQUID GLASS VIEW TOGGLE --- */
@@ -193,122 +816,65 @@ body::after {
   color: #fffaf0;
 }
 
-/* --- THE BARAHSINGHE BOTTLE STAGE --- */
-.bottle-stage {
-  position: relative;
-  width: 100%;
-  height: 380px;
+/* --- PROGRESS RIBBON / BOOKMARK --- */
+.progress-ribbon {
   display: flex;
-  justify-content: center;
   align-items: center;
-  margin: 2rem 0;
-  cursor: crosshair;
+  gap: 12px;
+  max-width: 900px;
+  margin: 0 auto 1.5rem;
+  padding: 0.65rem 1.1rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.6), rgba(255,255,255,0.25));
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255,255,255,0.6);
+  box-shadow: inset 0 1px 1px rgba(255,255,255,0.8), 0 8px 20px -14px rgba(44,36,27,0.25);
 }
-
-.bottle-stage::after {
-  content: '';
-  position: absolute;
-  bottom: 30px;
-  width: 120px;
-  height: 12px;
-  background: rgba(0, 0, 0, 0.15);
-  border-radius: 50%;
-  filter: blur(5px);
-  transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1);
-  z-index: 1;
+body.theme-dark .progress-ribbon {
+  background: linear-gradient(135deg, rgba(34,26,18,0.6), rgba(34,26,18,0.3));
+  border-color: rgba(241,230,211,0.14);
 }
-
-.bottle-glass {
-  position: relative;
-  z-index: 10;
-  height: 280px;
-  transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1);
-}
-
-.bottle-stage:hover .bottle-glass {
-  transform: translateY(-15px);
-}
-.bottle-stage:hover::after {
-  transform: scale(0.8);
-  opacity: 0.5;
-}
-
-.ingredient-peep {
-  position: absolute;
-  z-index: 5;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) scale(0.5) rotate(0deg);
-  opacity: 0;
-  transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-  pointer-events: none;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
+.ribbon-count {
   font-family: 'Instrument Serif', serif;
-  font-size: 1.2rem;
-  color: var(--text-muted);
+  font-size: 1.35rem;
+  color: var(--accent-gold-deep);
+  line-height: 1;
 }
-
-.ingredient-img {
-  width: 90px; 
-  height: auto;
-  object-fit: contain;
-  filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.2));
-  transition: transform 0.4s ease;
-}
-
-.bottle-stage:hover .ingredient-img {
-  transform: scale(1.1) rotate(5deg);
-}
-.bottle-stage:hover .ingredient-pos-0 { transform: translate(-150px, -100px) scale(1) rotate(-10deg); opacity: 1; }
-.bottle-stage:hover .ingredient-pos-1 { transform: translate(90px, -40px) scale(1) rotate(15deg); opacity: 1; }
-.bottle-stage:hover .ingredient-pos-2 { transform: translate(-120px, 80px) scale(1) rotate(-5deg); opacity: 1; }
-
-.journal-panel { background: transparent; padding: 0; }
-
-.scan-btn {
-  position: relative;
-  background: linear-gradient(160deg, #3c3226 0%, var(--text-primary) 55%, #1c1610 100%);
-  color: var(--bg-warm);
-  border: none;
-  padding: 12px 24px;
-  border-radius: 30px;
+.ribbon-of {
   font-family: 'Inter', sans-serif;
-  font-size: 0.85rem;
-  font-weight: 500;
+  font-size: 0.7rem;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 1px;
-  cursor: pointer;
-  overflow: visible;
-  box-shadow: 0 6px 16px -6px rgba(44, 36, 27, 0.4);
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease, background 0.4s ease;
+  white-space: nowrap;
 }
-.scan-btn:hover {
-  background: linear-gradient(160deg, var(--accent-gold) 0%, var(--accent-gold-deep) 60%, var(--accent-copper) 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 14px 28px -10px rgba(214, 159, 60, 0.45);
+.ribbon-track {
+  flex: 1;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(0,0,0,0.06);
+  overflow: hidden;
+  position: relative;
 }
-.scan-btn::before, .scan-btn::after {
+.ribbon-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent-gold), var(--accent-copper));
+  transition: width 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+  position: relative;
+  overflow: hidden;
+}
+.ribbon-fill::after {
   content: '';
   position: absolute;
-  bottom: 6px;
-  width: 5px; height: 5px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.8);
-  opacity: 0;
-  pointer-events: none;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent);
+  animation: ribbonShine 2.4s ease-in-out infinite;
 }
-.scan-btn::before { left: 30%; }
-.scan-btn::after { left: 62%; width: 3px; height: 3px; }
-.scan-btn:hover::before { animation: fizzUp 1.1s ease-in infinite; }
-.scan-btn:hover::after { animation: fizzUp 1.4s ease-in infinite 0.3s; }
-
-@keyframes fizzUp {
-  0% { opacity: 0; transform: translateY(0) scale(1); }
-  15% { opacity: 0.9; }
-  100% { opacity: 0; transform: translateY(-26px) scale(0.4); }
+@keyframes ribbonShine {
+  0%   { transform: translateX(-120%); }
+  100% { transform: translateX(120%); }
 }
 
 /* --- PREMIUM BEER PASSPORT BOOK --- */
@@ -346,7 +912,7 @@ body::after {
   overflow: hidden;
   backface-visibility: hidden;
   transform-style: preserve-3d;
-  transition: transform 0.36s cubic-bezier(0.45, 0, 0.55, 1), opacity 0.36s ease;
+  transition: transform 0.36s cubic-bezier(0.45, 0, 0.55, 1), opacity 0.36s ease, background 0.6s ease;
 }
 
 .book-page.left {
@@ -388,19 +954,87 @@ body::after {
 .page-turn-hint:hover { color: var(--accent-gold-deep); background: #fff; }
 .page-turn-hint.is-disabled { opacity: 0 !important; pointer-events: none; }
 
-.custom-stamp {
+/* --- WAX SEAL / FOIL STAMP ---
+   .wax-stamp is the tilt-reactive mount (JS sets --tilt-x/--tilt-y on
+   mousemove); .wax-stamp-fresh plays a press-thump + ink bleed once when a
+   beer has just been scanned. --- */
+.wax-stamp {
   position: absolute;
   top: 50%;
   left: 40px;
+  width: 120px;
+  height: 120px;
+  perspective: 500px;
   transform: translateY(-50%) rotate(-15deg);
+  pointer-events: auto;
+}
+.book-page.left .wax-stamp { transform: translateY(-50%) rotate(-20deg); }
+
+.wax-stamp .custom-stamp {
+  position: relative;
+  top: auto; left: auto;
+  display: block;
   width: 110px;
   height: auto;
-  opacity: 0.90;
+  opacity: 0.9;
   mix-blend-mode: multiply;
-  pointer-events: none;
   filter: contrast(1.2);
+  transform: rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
+  transition: transform 0.15s ease-out, filter 0.25s ease;
+  pointer-events: none;
 }
-.book-page.left .custom-stamp { transform: translateY(-50%) rotate(-20deg); }
+.wax-stamp:hover .custom-stamp {
+  filter: contrast(1.28) brightness(1.1) drop-shadow(0 0 7px rgba(214, 159, 60, 0.45));
+}
+
+/* foil shimmer sweep, catches light on hover/tilt */
+.wax-stamp::after {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  background: linear-gradient(115deg, transparent 22%, rgba(255,255,255,0.6) 46%, rgba(255, 232, 184, 0.4) 52%, transparent 68%);
+  background-size: 260% 260%;
+  background-position: 0% 0%;
+  mix-blend-mode: overlay;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+.wax-stamp:hover::after {
+  opacity: 1;
+  animation: foilSweep 1.05s ease forwards;
+}
+@keyframes foilSweep {
+  from { background-position: 0% 0%; }
+  to   { background-position: 100% 100%; }
+}
+
+/* ink bleed pooling out from the seal at the moment of the press */
+.wax-ink-bleed {
+  position: absolute;
+  inset: -16px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(74, 37, 17, 0.30) 0%, rgba(74, 37, 17, 0.14) 45%, transparent 72%);
+  opacity: 0;
+  pointer-events: none;
+}
+.wax-stamp-fresh .custom-stamp {
+  animation: stampPress 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes stampPress {
+  0%   { transform: scale(2.4) rotate(-10deg); opacity: 0; filter: blur(3px); }
+  55%  { transform: scale(0.88) rotate(3deg); opacity: 1; filter: blur(0); }
+  75%  { transform: scale(1.1) rotate(-1.5deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+.wax-stamp-fresh .wax-ink-bleed {
+  animation: inkBleed 0.9s ease-out 0.28s forwards;
+}
+@keyframes inkBleed {
+  0%   { opacity: 0; transform: scale(0.25); }
+  38%  { opacity: 0.9; }
+  100% { opacity: 0; transform: scale(1.7); }
+}
 
 .book-nav {
   position: absolute;
@@ -441,6 +1075,21 @@ body::after {
 }
 @keyframes fillUp { to { height: 85%; } }
 
+/* foam head resting on top of the rising liquid */
+.bottle-liquid::before {
+  content: '';
+  position: absolute;
+  top: -7px; left: -6%;
+  width: 112%; height: 14px;
+  background:
+    radial-gradient(circle at 20% 60%, #fff 0 4px, transparent 5px),
+    radial-gradient(circle at 50% 50%, #fffaf0 0 5px, transparent 6px),
+    radial-gradient(circle at 78% 60%, #fff 0 4px, transparent 5px),
+    #fffaf0;
+  border-radius: 50%;
+  filter: blur(0.4px);
+  opacity: 0.92;
+}
 .bottle-liquid::after {
   content: ''; position: absolute; top: -5px; left: -10%; width: 120%; height: 15px;
   background: rgba(255, 255, 255, 0.3); border-radius: 50%; transform: rotate(-3deg);
@@ -448,17 +1097,19 @@ body::after {
 
 .passport-name { font-family: 'Instrument Serif', serif; font-size: 2.2rem; text-align: center; color: var(--text-primary); line-height: 1; margin-bottom: 0.5rem; }
 
-/* --- PREMIUM BOTTOM DRAWER (SCANNER) --- */
+/* --- PREMIUM BOTTOM DRAWER (SCANNER) ---
+   A pint glass rising from the bottom: foam rim, smooth pour, no jarring
+   pop. The old 60% bounce is gone — it just glides up and settles. */
 .modal-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(44, 36, 27, 0.5); 
+  background: rgba(44, 36, 27, 0.5);
   backdrop-filter: blur(0px);
   -webkit-backdrop-filter: blur(0px);
   z-index: 1000;
   display: flex;
   justify-content: center;
-  align-items: flex-end; 
+  align-items: flex-end;
   padding: 0;
   animation: overlayFadeIn 0.45s ease forwards;
 }
@@ -472,21 +1123,62 @@ body::after {
   background: linear-gradient(180deg, #fffdf9 0%, var(--bg-warm) 100%);
   border: 1px solid var(--border-subtle);
   border-bottom: none;
-  border-radius: 28px 28px 0 0; 
-  padding: 2.5rem 2rem 4rem; 
+  border-radius: 28px 28px 0 0;
+  padding: 2.5rem 2rem 4rem;
   max-width: 650px;
   width: 100%;
   text-align: center;
   position: relative;
-  box-shadow: 0 -25px 60px rgba(0, 0, 0, 0.18); 
-  transform: translateY(100%) scale(0.97);
+  box-shadow: 0 -25px 60px rgba(0, 0, 0, 0.18);
+  transform: translateY(100%);
   opacity: 0;
-  animation: slideUpDrawer 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.08s forwards;
+  animation: slideUpDrawer 0.6s cubic-bezier(0.22, 1, 0.36, 1) 0.08s forwards;
+  overflow: hidden;
 }
 
 @keyframes slideUpDrawer {
-  60% { transform: translateY(-8px) scale(1.005); opacity: 1; }
-  to { transform: translateY(0) scale(1); opacity: 1; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* foam rim along the top edge of the drawer — reads as the head on a pour */
+.modal-content::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 26px;
+  background:
+    radial-gradient(circle at 4% 70%, var(--foam) 0 9px, transparent 10px),
+    radial-gradient(circle at 14% 60%, var(--foam) 0 12px, transparent 13px),
+    radial-gradient(circle at 27% 75%, var(--foam) 0 10px, transparent 11px),
+    radial-gradient(circle at 40% 60%, var(--foam) 0 13px, transparent 14px),
+    radial-gradient(circle at 53% 72%, var(--foam) 0 11px, transparent 12px),
+    radial-gradient(circle at 66% 60%, var(--foam) 0 13px, transparent 14px),
+    radial-gradient(circle at 79% 75%, var(--foam) 0 10px, transparent 11px),
+    radial-gradient(circle at 90% 60%, var(--foam) 0 12px, transparent 13px),
+    radial-gradient(circle at 97% 70%, var(--foam) 0 9px, transparent 10px),
+    linear-gradient(180deg, rgba(255,250,240,0.9), transparent);
+  filter: blur(0.6px);
+  pointer-events: none;
+  opacity: 0;
+  animation: foamIn 0.7s ease 0.35s forwards;
+}
+@keyframes foamIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* the drag handle, now sitting just under the foam */
+.modal-content::before {
+  content: '';
+  position: absolute;
+  top: 34px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 4px;
+  background: var(--border-subtle);
+  border-radius: 10px;
+  z-index: 2;
 }
 
 .upload-dropzone {
@@ -515,16 +1207,196 @@ body::after {
   transform: translateY(-4px) scale(1.08);
 }
 
-.modal-content::before {
-  content: '';
+/* little fizz inside the dropzone while scanning */
+.scan-fizz {
   position: absolute;
-  top: 12px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 40px;
-  height: 4px;
-  background: var(--border-subtle);
-  border-radius: 10px;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  border-radius: 16px;
+}
+.scan-fizz span {
+  position: absolute;
+  bottom: 18%;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.9);
+  animation: bubbleRise 1.5s ease-in infinite;
+}
+
+/* --- SCAN DRAWER INTERIOR --- */
+.scan-drawer-header {
+  position: relative;
+  z-index: 2;
+  margin-bottom: 1.75rem;
+}
+.scan-drawer-title {
+  font-size: 2.4rem;
+  color: var(--text-primary);
+  margin: 0.35rem 0 0.4rem;
+  line-height: 1;
+}
+.scan-drawer-sub {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin: 0;
+  max-width: 420px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* dropzone resting state — glass icon + label */
+.dropzone-resting {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+.dropzone-glass-icon {
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  filter: drop-shadow(0 8px 14px rgba(168, 93, 46, 0.18));
+}
+.upload-dropzone:hover .dropzone-glass-icon,
+.upload-dropzone.is-dragover .dropzone-glass-icon {
+  transform: translateY(-5px) scale(1.08) rotate(-2deg);
+}
+.dropzone-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.dropzone-hint {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.62rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+/* scanning state — the dropzone becomes a pint filling up */
+.upload-dropzone.is-scanning {
+  cursor: default;
+  border-style: solid;
+  background:
+    linear-gradient(180deg, rgba(255,253,249,0.2), rgba(255,253,249,0.2)) padding-box,
+    linear-gradient(120deg, var(--accent-gold), var(--accent-copper)) border-box;
+}
+.upload-dropzone.is-scanning:hover {
+  transform: none;
+}
+.scan-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  position: relative;
+  z-index: 2;
+}
+
+/* --- LIQUID-FILL PROGRESS RING wrapping the pouring pint --- */
+.scan-pour-ring-wrap {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.scan-progress-ring {
+  position: absolute;
+  inset: 0;
+  width: 100px;
+  height: 100px;
+  transform: rotate(-90deg);
+}
+.ring-track {
+  fill: none;
+  stroke: rgba(168, 93, 46, 0.15);
+  stroke-width: 5;
+}
+.ring-fill {
+  fill: none;
+  stroke: var(--accent-gold);
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-dasharray: 276.5;
+  transition: stroke-dashoffset 0.3s ease;
+  filter: drop-shadow(0 0 4px rgba(214, 159, 60, 0.55));
+}
+.scan-progress-pct {
+  position: absolute;
+  bottom: -22px;
+  font-size: 0.62rem;
+}
+
+/* a pint silhouette that fills with amber while scanning, nested in the ring */
+.scan-pour-ring-wrap .scan-pour-glass {
+  position: absolute;
+}
+.scan-pour-glass {
+  position: relative;
+  width: 56px;
+  height: 70px;
+  border: 2px solid var(--accent-copper);
+  border-top: none;
+  border-radius: 0 0 10px 10px;
+  overflow: hidden;
+  background: rgba(255,255,255,0.4);
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.scan-pour-glass.is-full {
+  animation: pourSettle 0.5s ease;
+}
+@keyframes pourSettle {
+  0%   { transform: translateY(-5px); }
+  55%  { transform: translateY(2px); }
+  100% { transform: translateY(0); }
+}
+.scan-pour-liquid {
+  position: absolute;
+  bottom: 0; left: 0; width: 100%;
+  height: 0;
+  background: linear-gradient(180deg, var(--accent-gold), var(--accent-copper));
+  animation: pourFill 1.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  transition: height 0.35s ease;
+}
+@keyframes pourFill {
+  to { height: 82%; }
+}
+.scan-pour-foam {
+  position: absolute;
+  bottom: 0; left: -4%;
+  width: 108%;
+  height: 0;
+  background:
+    radial-gradient(circle at 15% 60%, var(--foam) 0 5px, transparent 6px),
+    radial-gradient(circle at 38% 50%, var(--foam) 0 6px, transparent 7px),
+    radial-gradient(circle at 62% 60%, var(--foam) 0 5px, transparent 6px),
+    radial-gradient(circle at 85% 50%, var(--foam) 0 6px, transparent 7px);
+  animation: pourFoam 1.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  transition: bottom 0.35s ease;
+}
+@keyframes pourFoam {
+  to { height: 12px; bottom: 82%; }
+}
+
+.scan-drawer-actions {
+  position: relative;
+  z-index: 2;
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: center;
+}
+.scan-cancel-btn {
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+}
+.scan-cancel-btn:hover {
+  background: linear-gradient(160deg, var(--accent-gold) 0%, var(--accent-gold-deep) 60%, var(--accent-copper) 100%);
+  border-color: transparent;
 }
 
 /* --- LIQUID VIEW TRANSITION (Topology <-> Passport) --- */
@@ -586,11 +1458,19 @@ body::after {
   .header-actions p {
     text-align: left !important;
   }
-  .main-layout {
-    grid-template-columns: 1fr;
+  .topology-stage {
+    min-height: auto;
   }
-  .topology-container {
-    height: 400px;
+  .topology-svg {
+    height: 420px;
+  }
+  .specimen-glass-card {
+    position: static;
+    width: auto;
+    margin: 1rem;
+    max-height: none;
+    mask-image: none;
+    -webkit-mask-image: none;
   }
   .book-container {
     flex-direction: column;
@@ -604,4 +1484,34 @@ body::after {
     box-shadow: 0 10px 30px rgba(0,0,0,0.06);
   }
   .page-turn-hint { opacity: 0.8; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .topology-link,
+  .topology-link-active,
+  .specimen-empty-glyph,
+  .liquid-transition.active,
+  .fizz-bubble,
+  .tab-fizz-bubble,
+  .topology-stage::after,
+  .bottle-liquid,
+  .bottle-liquid::before,
+  .modal-content::after,
+  .bead-bob,
+  .wordmark-ripple,
+  .shimmer-layer,
+  .stage-glow,
+  .mood-layer,
+  .wheel-shape,
+  .ribbon-fill::after,
+  .wax-stamp::after,
+  .wax-stamp-fresh .custom-stamp,
+  .wax-stamp-fresh .wax-ink-bleed,
+  .pour-drop-active,
+  .condensation-drip,
+  .scan-pour-glass.is-full,
+  .scan-pour-liquid,
+  .scan-pour-foam {
+    animation: none !important;
+  }
 }
