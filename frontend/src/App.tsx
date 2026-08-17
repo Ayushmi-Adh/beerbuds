@@ -245,10 +245,10 @@ function App() {
       .attr('stroke-width', 1.5)
       .style('cursor', 'pointer')
       .style('transition', 'r 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)')
-      .on('mouseover', function(event, d) {
+      .on('mouseover', function(_event, d) {
         d3.select(this).attr('r', (d as GraphNode).radius + 6);
       })
-      .on('mouseout', function(event, d) {
+      .on('mouseout', function(_event, d) {
         d3.select(this).attr('r', (d as GraphNode).radius);
       })
       .on('click', (event, d: GraphNode) => {
