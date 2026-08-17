@@ -20,6 +20,10 @@ interface GraphLink extends SimulationLinkDatum<GraphNode> {
   target: number | string | GraphNode;
 }
 
+type FlipPhase = 'idle' | 'out-next' | 'in-next' | 'out-prev' | 'in-prev';
+
+const FLIP_MS = 360; // keep in sync with the transition duration in App.css (.book-page)
+
 const getNodeColors = (flavors: string) => {
   const f = flavors.toLowerCase();
   if (f.includes('roasted') || f.includes('coffee') || f.includes('dark') || f.includes('stout')) {
@@ -59,10 +63,14 @@ function App() {
   const [isScanOpen, setIsScanOpen] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [scanMessage, setScanMessage] = useState<string | null>(null);
-  
+  const [isDragOver, setIsDragOver] = useState(false);
+
   const [currentView, setCurrentView] = useState<'cellar' | 'passport'>('cellar');
+  const [isViewTransitioning, setIsViewTransitioning] = useState(false);
+  const [transitionBubbles, setTransitionBubbles] = useState<{ left: number; delay: number; duration: number }[]>([]);
   const [bookIndex, setBookIndex] = useState(0);
-  
+  const [flipPhase, setFlipPhase] = useState<FlipPhase>('idle');
+
   const svgRef = useRef<SVGSVGElement>(null);
 
   const fetchBeers = () => {
@@ -76,10 +84,7 @@ function App() {
     fetchBeers();
   }, []);
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
+  const processScanFile = async (file: File) => {
     setIsScanning(true);
     setScanMessage("Extracting botanical profiles...");
 
@@ -95,14 +100,14 @@ function App() {
 
       if (response.ok) {
         setScanMessage(`Extraction complete.`);
-        fetchBeers(); 
+        fetchBeers();
         setSelectedBeer(data.beer);
         setTimeout(() => {
           setIsScanOpen(false);
           setIsScanning(false);
           setScanMessage(null);
-          
-          setCurrentView('passport');
+
+          switchView('passport');
           const scanned = beers.filter(b => b.is_scanned);
           const lastSpread = Math.max(0, (scanned.length % 2 === 0 ? scanned.length : scanned.length - 1) - 1);
           setBookIndex(lastSpread % 2 === 0 ? lastSpread : lastSpread - 1);
@@ -116,6 +121,50 @@ function App() {
       setScanMessage("Network error connecting to neural model.");
       setIsScanning(false);
     }
+  };
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    processScanFile(file);
+  };
+
+  const handleDrop = (event: React.DragEvent<HTMLLabelElement>) => {
+    event.preventDefault();
+    setIsDragOver(false);
+    const file = event.dataTransfer.files?.[0];
+    if (file) processScanFile(file);
+  };
+
+  // Smooth "beer liquid" transition when switching between Topology and Passport
+  const switchView = (target: 'cellar' | 'passport') => {
+    if (target === currentView || isViewTransitioning) return;
+    setTransitionBubbles(
+      Array.from({ length: 16 }).map(() => ({
+        left: 4 + Math.random() * 92,
+        delay: Math.random() * 0.5,
+        duration: 1 + Math.random() * 0.9,
+      }))
+    );
+    setIsViewTransitioning(true);
+    window.setTimeout(() => setCurrentView(target), 430);
+    window.setTimeout(() => setIsViewTransitioning(false), 980);
+  };
+
+  // Real page-flip: rotates the page out, swaps content at the midpoint, rotates it back in
+  const flipPage = (direction: 'next' | 'prev') => {
+    if (flipPhase !== 'idle') return;
+    if (direction === 'next' && bookIndex + 2 >= scannedBeers.length) return;
+    if (direction === 'prev' && bookIndex === 0) return;
+
+    setFlipPhase(direction === 'next' ? 'out-next' : 'out-prev');
+    window.setTimeout(() => {
+      setBookIndex(prev => (direction === 'next' ? prev + 2 : prev - 2));
+      setFlipPhase(direction === 'next' ? 'in-next' : 'in-prev');
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => setFlipPhase('idle'));
+      });
+    }, FLIP_MS);
   };
 
   // D3 Network Graph Logic
@@ -265,16 +314,31 @@ function App() {
   const scannedBeers = beers.filter(b => b.is_scanned);
   const leftPageBeer = scannedBeers[bookIndex] || null;
   const rightPageBeer = scannedBeers[bookIndex + 1] || null;
+  const canGoNext = bookIndex + 2 < scannedBeers.length;
+  const canGoPrev = bookIndex > 0;
 
   const renderBookPage = (beer: Beer | null, side: 'left' | 'right') => {
+    const flipClass =
+      side === 'right'
+        ? flipPhase === 'out-next' ? 'flip-out-next' : flipPhase === 'in-next' ? 'flip-in-next' : ''
+        : flipPhase === 'out-prev' ? 'flip-out-prev' : flipPhase === 'in-prev' ? 'flip-in-prev' : '';
+
+    const handleClick = () => {
+      if (side === 'right') flipPage('next');
+      else flipPage('prev');
+    };
+
+    const hintDisabled = side === 'right' ? !canGoNext : !canGoPrev;
+
     if (!beer) {
       return (
-        <div className={`book-page ${side}`}>
+        <div className={`book-page ${side} ${flipClass}`} onClick={handleClick}>
           <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <p style={{ color: 'var(--text-muted)', fontStyle: 'italic', fontFamily: 'Instrument Serif, serif', fontSize: '1.5rem', textAlign: 'center' }}>
               More discoveries await...
             </p>
           </div>
+          <span className={`page-turn-hint ${hintDisabled ? 'is-disabled' : ''}`}>{side === 'right' ? '›' : '‹'}</span>
         </div>
       );
     }
@@ -282,7 +346,7 @@ function App() {
     const liquidColor = getNodeColors(beer.flavors).main;
 
     return (
-      <div className={`book-page ${side}`}>
+      <div className={`book-page ${side} ${flipClass}`} onClick={handleClick}>
         <div className="mono-tag" style={{ position: 'absolute', top: '2rem', [side === 'left' ? 'left' : 'right']: '2rem' }}>
           STAMP #{beer.id.toString().padStart(4, '0')}
         </div>
@@ -313,13 +377,29 @@ function App() {
           className="custom-stamp" 
           onError={(e) => (e.currentTarget.style.display = 'none')} 
         />
+        <span className={`page-turn-hint ${hintDisabled ? 'is-disabled' : ''}`}>{side === 'right' ? '›' : '‹'}</span>
       </div>
     );
   };
 
   return (
     <div style={{ padding: '2rem', maxWidth: '1300px', margin: '0 auto' }}>
-      
+
+      {/* AMBER LIQUID + FIZZ TRANSITION, plays when switching views */}
+      <div className={`liquid-transition ${isViewTransitioning ? 'active' : ''}`}>
+        {isViewTransitioning && transitionBubbles.map((b, i) => (
+          <span
+            key={i}
+            className="fizz-bubble"
+            style={{
+              left: `${b.left}%`,
+              animationDelay: `${b.delay}s`,
+              animationDuration: `${b.duration}s`,
+            }}
+          />
+        ))}
+      </div>
+
       {/* RESPONSIVE HEADER */}
       <header className="app-header">
         <div>
@@ -329,10 +409,10 @@ function App() {
           </h1>
           
           <div className="view-tabs">
-            <button className={`view-tab ${currentView === 'cellar' ? 'active' : ''}`} onClick={() => setCurrentView('cellar')}>
+            <button className={`view-tab ${currentView === 'cellar' ? 'active' : ''}`} onClick={() => switchView('cellar')}>
               BEER Topology
             </button>
-            <button className={`view-tab ${currentView === 'passport' ? 'active' : ''}`} onClick={() => setCurrentView('passport')}>
+            <button className={`view-tab ${currentView === 'passport' ? 'active' : ''}`} onClick={() => switchView('passport')}>
               BEER Passport
             </button>
           </div>
@@ -427,20 +507,9 @@ function App() {
             </div>
           ) : (
             <div className="book-container">
-              
-              <div className="book-pagination">
-                <button className="book-nav prev" disabled={bookIndex === 0} onClick={() => setBookIndex(prev => prev - 2)}>
-                  ←
-                </button>
-                <button className="book-nav next" disabled={bookIndex + 2 >= scannedBeers.length} onClick={() => setBookIndex(prev => prev + 2)}>
-                  →
-                </button>
-              </div>
-
               <div className="page-spine"></div>
               {renderBookPage(leftPageBeer, 'left')}
               {renderBookPage(rightPageBeer, 'right')}
-              
             </div>
           )}
         </div>
@@ -467,16 +536,22 @@ function App() {
               disabled={isScanning}
             />
 
-            <label htmlFor="file-upload" className="upload-dropzone" style={{ display: 'block', border: '1px dashed var(--text-primary)', padding: '3rem', cursor: 'pointer', borderRadius: '8px' }}>
+            <label
+              htmlFor="file-upload"
+              className={`upload-dropzone ${isDragOver ? 'is-dragover' : ''}`}
+              onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
+              onDragLeave={() => setIsDragOver(false)}
+              onDrop={handleDrop}
+            >
               {isScanning ? (
                 <div className="mono-tag" style={{ color: 'var(--accent-gold)' }}>Extracting DNA...</div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--text-primary)" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+                  <svg className="dropzone-icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--text-primary)" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
                     <line x1="12" y1="5" x2="12" y2="19"></line>
                     <line x1="5" y1="12" x2="19" y2="12"></line>
                   </svg>
-                  <div className="mono-tag" style={{ color: 'var(--text-primary)' }}>SELECT OR CAPTURE IMAGE</div>
+                  <div className="mono-tag" style={{ color: 'var(--text-primary)' }}>SELECT, DRAG, OR CAPTURE IMAGE</div>
                 </div>
               )}
             </label>
