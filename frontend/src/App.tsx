@@ -115,7 +115,10 @@ function App() {
   const fetchBeers = () => {
     fetch(`${API_BASE_URL}/api/beers`)
       .then(response => response.json())
-      .then(data => setBeers(data.beers))
+      .then(data => {
+        console.log("🕵️ Data received from server:", data.beers); // <-- ADD THIS LINE
+        setBeers(data.beers);
+      })
       .catch(error => console.error("Error fetching data:", error));
   };
 
@@ -229,7 +232,7 @@ function App() {
     formData.append('file', file);
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/beers`, {
+      const response = await fetch(`${API_BASE_URL}/api/scan-beer`, {
         method: 'POST',
         body: formData,
       });
