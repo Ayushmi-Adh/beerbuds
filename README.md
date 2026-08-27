@@ -1,6 +1,7 @@
 # BeerBuds 🍻
 
-![BeerBuds Demo](https://usagif.com/beer-gifs/)
+![BeerBuds Demo](<img width="800" height="450" alt="beer-10" src="https://github.com/user-attachments/assets/e9a7758b-2257-434d-ac0c-2cb34de2188a" />)
+
 
 An AI-powered full-stack web application for scanning, analyzing, and mapping craft beer flavor profiles. 
 
