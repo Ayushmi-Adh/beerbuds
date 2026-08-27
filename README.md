@@ -6,7 +6,7 @@ An AI-powered full-stack web application for scanning, analyzing, and mapping cr
 
 BeerBuds allows users to snap a photo of any beer label and instantly adds it to a digital "Passport" and an interactive D3.js topology network. The backend utilizes the Google Gemini Vision API and strict prompt engineering to extract unstructured visual data from labels into structured JSON data.
 
-## 🚀 Features
+## Features
 
 * **AI Vision Label Scanning:** Upload or snap a photo of a beer label. The app uses **Gemini 3.5 Flash Vision** to extract the exact commercial brand name, generate a sommelier-style description, and isolate three core flavor tags.
 * **Interactive Topology Graph:** A custom-built **D3.js** force-directed physics graph clusters collected beers into flavor families (Roasted, Hoppy, Floral) on a highly interactive, animated glassmorphism stage.
@@ -32,7 +32,7 @@ BeerBuds allows users to snap a photo of any beer label and instantly adds it to
 
 ---
 
-## 💻 Local Development Setup
+##  Local Development Setup
 
 ### 1. Backend Setup
 Navigate to the backend directory and install the Python dependencies.
