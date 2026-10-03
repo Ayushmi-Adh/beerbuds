@@ -6,7 +6,7 @@
 
 An AI-powered full-stack web application for scanning, analyzing, and mapping craft beer flavor profiles. 
 
-BeerBuds allows users to snap a photo of any beer label and instantly adds it to a digital "Passport" and an interactive D3.js topology network. The backend utilizes the Google Gemini Vision API and strict prompt engineering to extract unstructured visual data from labels into structured JSON data.
+BeerBuds allows users to snap a photo of any beer label and instantly adds it to a digital "Passport" and an interactive D3.js topology network. The backend utilizes the Google Gemini Vision API and strict prompt engineering to extract unstructured visual data from labels into structured JSON data. This is a fun project.
 
 ## Features
 
